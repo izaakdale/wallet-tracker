@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wallet-tracker
+  namespace: app
+spec:
+  selector:
+    matchLabels:
+      app: wallet-tracker
+  template:
+    metadata:
+      labels:
+        app: wallet-tracker
+    spec:
+      containers:
+      - name: wallet-tracker
+        image: ko://github.com/izaakdale/wallet-tracker
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+        env:
+        - name: REDIS_ENDPOINT
+          value: redis://redis.db.svc.cluster.local:6379
+        - name: KAFKA_BROKERS
+          value: my-cluster-kafka-external-bootstrap.kafka.svc.cluster.local:30099
+        - name: KAFKA_TOPIC
+          value: transactions
+        - name: KAFKA_GROUP
+          value: wallet-tracker
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wallet-tracker
+  namespace: app
+spec:
+  selector:
+    app: wallet-tracker
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wallet-tracker
+  namespace: app
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`eth.izaakserver.com`)
+      services:
+        - kind: Service
+          name: wallet-tracker
+          namespace: app
+          port: 80
+
