@@ -39,8 +39,12 @@ func New(redisClient RedisAPI) *client {
 	}
 }
 
-func (c *client) CreateAddress(addr string) error {
-	return c.redis.HSet(addr, addrSecondaryKey, "todo: user info").Err()
+func (c *client) CreateAddress(addr string, am wallet.AddressMetadata) error {
+	metadata, err := json.Marshal(am)
+	if err != nil {
+		return err
+	}
+	return c.redis.HSet(addr, addrSecondaryKey, metadata).Err()
 }
 
 func (c *client) AddressExists(addr string) (bool, error) {

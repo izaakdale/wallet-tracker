@@ -54,7 +54,16 @@ func Run() error {
 	mux := ittp.NewServeMux()
 	mux.Post("/track-address/{address}", func(w http.ResponseWriter, r *http.Request) {
 		addr := strings.ToLower(r.PathValue("address"))
-		if err := storer.CreateAddress(addr); err != nil {
+
+		var am wallet.AddressMetadata
+		if err := json.NewDecoder(r.Body).Decode(&am); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		am.CreatedAt = time.Now()
+
+		if err := storer.CreateAddress(addr, am); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return

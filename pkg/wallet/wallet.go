@@ -1,5 +1,12 @@
 package wallet
 
+import "time"
+
+type AddressMetadata struct {
+	Username  string    `json:"username,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+}
+
 type Transaction struct {
 	TransactionHash string `json:"transaction_hash,omitempty"`
 	BlockHash       string `json:"block_hash,omitempty"`
